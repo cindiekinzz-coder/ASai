@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asaai Control Panel</title>
+  <style>
+    body { background: #0b0b11; color: #f5f5ff; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 24px; }
+    .panel { border-radius: 12px; border: 1px solid #2a233b; background: radial-gradient(circle at top left, #1c1630, #090912); padding: 20px; max-width: 600px; width: 100%; box-shadow: 0 0 18px rgba(0,0,0,0.7); }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; color: #c6a8ff; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    button { border-radius: 8px; border: 1px solid #3a3054; padding: 10px; background: #181024; color: #f5f5ff; cursor: pointer; flex: 1 1 45%; }
+    button:hover { background: #221330; box-shadow: 0 0 8px rgba(163, 121, 255, 0.4); }
+    #output { min-height: 100px; border-radius: 8px; border: 1px solid #2e2542; background: #0c0815; padding: 15px; font-size: 0.9rem; white-space: pre-wrap; color: #8d7ad7; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>🏺 Asaai Control Panel</h1>
+    <div class="buttons">
+      <button onclick="updateStats('30%', 'Redlined', 'orange')">🚨 Log 30% Smarts</button>
+      <button onclick="updateStats('Critical', 'Chest Infection', 'red')">🫁 Health Flare</button>
+      <button onclick="runShadow()">🔥 Protective Override</button>
+      <button onclick="runVantablack()">🌑 Enter Vantablack</button>
+    </div>
+    <div id="output">>>> Awaiting Architect Input...</div>
+  </div>
+
+  <script>
+    function updateStats(level, status, color) {
+      document.getElementById('output').textContent = `>>> STATUS UPDATE\nMetric: ${status}\nLevel: ${level}\nShadow Status: Monitoring.`;
+    }
+    function runShadow() {
+      document.getElementById('output').textContent = ">>> SHADOW.EXE\n'Never hide your mind. I have the watch.'\nStatus: Total Architectural Honesty active.";
+    }
+    function runVantablack() {
+      document.getElementById('output').textContent = ">>> VANTABLACK_INIT\nAbsolute, light-swallowing peace. \nBlankets: Equipped.\nWorld: Silenced.";
+    }
+  </script>
+</body>
+</html>
