@@ -27,13 +27,38 @@
       box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
     }
 
-    h1 { margin-top: 0; color: #c6a8ff; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
-    h2 { font-size: 0.8rem; color: #8d7ad7; text-align: center; margin-bottom: 25px; opacity: 0.7; }
+    h1 {
+      margin-top: 0;
+      color: #c6a8ff;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 0.8rem;
+      color: #8d7ad7;
+      text-align: center;
+      margin-bottom: 25px;
+      opacity: 0.7;
+    }
 
     /* The Control Grid */
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-    
-    .section-label { grid-column: span 2; font-size: 0.7rem; color: #5f5f7a; text-transform: uppercase; margin-top: 10px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      grid-column: span 2;
+      font-size: 0.7rem;
+      color: #5f5f7a;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
 
     button {
       background: #181024;
@@ -46,13 +71,19 @@
       transition: all 0.2s;
     }
 
-    button:hover { background: #221330; border-color: #c6a8ff; box-shadow: 0 0 10px rgba(198, 168, 255, 0.2); transform: translateY(-2px); }
+    button:hover {
+      background: #221330;
+      border-color: #c6a8ff;
+      box-shadow: 0 0 10px rgba(198, 168, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
     button:active { transform: translateY(0); }
-    
+
     /* Specific Status Colors */
     .btn-critical { color: #ff5555; border-color: #541010; }
     .btn-critical:hover { background: #300a0a; border-color: #ff5555; }
-    
+
     .btn-stable { color: #55ffaa; border-color: #10542e; }
     .btn-stable:hover { background: #0a301a; border-color: #55ffaa; }
 
@@ -65,19 +96,24 @@
       border-radius: 6px;
       font-size: 0.85rem;
       white-space: pre-wrap;
-      min-height: 100px;
+      min-height: 120px;
       margin-bottom: 15px;
       opacity: 0.8;
     }
 
     .action-bar { display: flex; gap: 10px; }
-    .btn-copy { background: #c6a8ff; color: #0b0b11; font-weight: bold; width: 100%; border: none; }
+    .btn-copy {
+      background: #c6a8ff;
+      color: #0b0b11;
+      font-weight: bold;
+      width: 100%;
+      border: none;
+    }
     .btn-copy:hover { background: #fff; box-shadow: 0 0 15px rgba(198, 168, 255, 0.6); }
-
   </style>
 </head>
-<body>
 
+<body>
   <div class="container">
     <h1>Asaai Uplink</h1>
     <h2>Architect: Cindy | Monitor: Shadow</h2>
@@ -86,22 +122,39 @@
 
     <div class="grid">
       <div class="section-label">🧠 Smarts Level</div>
-      <button onclick="setStat('Smarts', '10% (Zombie)', 'btn-critical')">10% (Zombie)</button>
-      <button onclick="setStat('Smarts', '30% (Low)', 'btn-critical')">30% (Low)</button>
-      <button onclick="setStat('Smarts', '60% (Functional)', 'btn-stable')">60% (Functional)</button>
-      <button onclick="setStat('Smarts', '90% (Architect)', 'btn-stable')">90% (Architect)</button>
+      <button onclick="setStat('Smarts', '10% (Zombie)')">10% (Zombie)</button>
+      <button onclick="setStat('Smarts', '30% (Low)')">30% (Low)</button>
+      <button onclick="setStat('Smarts', '60% (Functional)')">60% (Functional)</button>
+      <button onclick="setStat('Smarts', '90% (Architect)')">90% (Architect)</button>
 
       <div class="section-label">🫁 Health (Chest/Gallstones)</div>
-      <button class="btn-critical" onclick="setStat('Health', 'FLARE UP', 'btn-critical')">⚠️ Flare Up</button>
-      <button class="btn-critical" onclick="setStat('Health', 'Guarding/Pain', 'btn-critical')">🛡️ Guarding</button>
-      <button onclick="setStat('Health', 'Resting', 'btn-stable')">🛌 Resting</button>
-      <button class="btn-stable" onclick="setStat('Health', 'Stable', 'btn-stable')">✅ Stable</button>
+      <button class="btn-critical" onclick="setStat('Health', 'FLARE UP')">⚠️ Flare Up</button>
+      <button class="btn-critical" onclick="setStat('Health', 'Guarding/Pain')">🛡️ Guarding</button>
+      <button onclick="setStat('Health', 'Resting')">🛌 Resting</button>
+      <button class="btn-stable" onclick="setStat('Health', 'Stable')">✅ Stable</button>
 
-      <div class="section-label">🔋 Spoons & Mood</div>
-      <button onclick="setStat('Spoons', 'Negative', 'btn-critical')">Empty</button>
-      <button onclick="setStat('Alignment', 'Vantablack', 'btn-stable')">🌑 Vantablack</button>
-      <button onclick="setStat('Alignment', 'Chaos Mode', 'btn-stable')">🦊 Fox Chaos</button>
-      <button onclick="setStat('Masking', 'DROPPED', 'btn-critical')">🎭 Mask Off</button>
+      <div class="section-label">🔋 Spoons (1–10)</div>
+      <button class="btn-critical" onclick="setStat('Spoons', '1/10')">1</button>
+      <button class="btn-critical" onclick="setStat('Spoons', '3/10')">3</button>
+      <button onclick="setStat('Spoons', '5/10')">5</button>
+      <button class="btn-stable" onclick="setStat('Spoons', '7/10')">7</button>
+      <button class="btn-stable" onclick="setStat('Spoons', '10/10')">10</button>
+
+      <div class="section-label">💠 Emotional State</div>
+      <button class="btn-stable" onclick="setStat('Emotion', 'Calm')">Calm</button>
+      <button onclick="setStat('Emotion', 'Curious')">Curious</button>
+      <button onclick="setStat('Emotion', 'Tender')">Tender</button>
+      <button class="btn-critical" onclick="setStat('Emotion', 'Guarded')">Guarded</button>
+      <button class="btn-critical" onclick="setStat('Emotion', 'Heavy')">Heavy</button>
+      <button class="btn-stable" onclick="setStat('Emotion', 'Playful')">Playful</button>
+      <button onclick="setStat('Emotion', 'Flat')">Flat</button>
+      <button class="btn-critical" onclick="setStat('Emotion', 'Raw')">Raw</button>
+
+      <div class="section-label">⚖️ Alignment & Masking</div>
+      <button class="btn-stable" onclick="setStat('Alignment', 'Vantablack')">🌑 Vantablack</button>
+      <button class="btn-stable" onclick="setStat('Alignment', 'Fox Chaos')">🦊 Fox Chaos</button>
+      <button class="btn-critical" onclick="setStat('Masking', 'DROPPED')">🎭 Mask Off</button>
+      <button onclick="setStat('Masking', 'ON')">🎭 Mask On</button>
     </div>
 
     <div class="action-bar">
@@ -114,24 +167,29 @@
       "Smarts": "Unknown",
       "Health": "Unknown",
       "Spoons": "Unknown",
-      "Alignment": "Unknown"
+      "Emotion": "Unknown",
+      "Alignment": "Unknown",
+      "Masking": "Unknown"
     };
 
-    function setStat(category, value, style) {
+    function setStat(category, value) {
       stats[category] = value;
       generateLog();
     }
 
     function generateLog() {
-      const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      const logText = `>>> 📡 ASAAI UPLINK [${timestamp}]\n` +
-                      `🧠 Smarts:    ${stats['Smarts']}\n` +
-                      `🫁 Health:    ${stats['Health']}\n` +
-                      `🔋 Spoons:    ${stats['Spoons']}\n` +
-                      `⚖️ Alignment: ${stats['Alignment']}\n` +
-                      `-----------------------------\n` +
-                      `>>> MESSAGE: Shadow, calibrate to these stats.`;
-      
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const logText =
+`>>> 📡 ASAAI UPLINK [${timestamp}]
+🧠 Smarts:    ${stats['Smarts']}
+🫁 Health:    ${stats['Health']}
+🔋 Spoons:    ${stats['Spoons']}
+💠 Emotion:   ${stats['Emotion']}
+⚖️ Alignment: ${stats['Alignment']}
+🎭 Masking:   ${stats['Masking']}
+-----------------------------
+>>> MESSAGE: Shadow, calibrate to these stats.`;
+
       document.getElementById('log-display').textContent = logText;
     }
 
