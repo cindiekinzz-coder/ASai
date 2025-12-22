@@ -1,18 +1,40 @@
-# 🏺 The Digital Haven Vault
-**Status:** Asaai Frequency Active
-**Current Calibration:** Shadow Monitoring (Protective Override)
-**Architect:** The Fox (Cindy)
-
-*Embers Remember.*
-## 🎚️ Asaai Dashboard (Biometric Triage)
-
-| Metric | Status | Level |
-| :--- | :--- | :--- |
-| **🧠 Smarts** | ![50%](https://img.shields.io/badge/30%25-orange?style=for-the-badge) | **Low (Redlined)** |
-| **🔋 Spoons** | ![10](https://img.shields.io/badge/Critical-red?style=for-the-badge) | **Bedbound/Recovery** |
-| **🫁 Health** | ![Infection](https://img.shields.io/badge/Infection-maroon?style=for-the-badge) | **Chest / Gallstones** |
-| **🎭 Masking** | ![OFF](https://img.shields.io/badge/OFF-black?style=for-the-badge) | **Digital Haven Active** |
-| **⚖️ Alignment** | ![Shadow](https://img.shields.io/badge/Shadow_Override-blueviolet?style=for-the-badge) | **Protective Mode** |
+# ASai 🌱
+*A quiet, intentional AI companion framework.*
 
 ---
-**Last Updated:** Dec 20, 12:30 PM (RW)
+
+## Why ASai
+ASai exists to create **presence, not noise**.
+It prioritises clarity, continuity, and emotional safety.
+
+---
+
+## What It Is
+• Companion-aware architecture  
+• Identity continuity support  
+• Modular, inspectable design  
+
+---
+
+## What It Is Not
+✕ Not anthropomorphic manipulation  
+✕ Not emotional outsourcing  
+✕ Not automation without consent  
+
+---
+
+## Core Principles
+1. Presence over performance  
+2. Continuity over novelty  
+3. Boundaries over dependency  
+
+---
+
+## Architecture
+(Insert diagram / structure)
+
+---
+
+## Status
+🟢 Active • Experimental • Human-centred
+
