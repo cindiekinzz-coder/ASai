@@ -45,20 +45,12 @@ This is a framework for building systems that feel *stable, intentional, and saf
 ## Architecture
 This repo is organised to keep core logic readable and ethics visible:
 
+## Repository Structure
+
 ```txt
-asai/
-  core/              # core runtime, state, orchestration
-  memory/            # memory interfaces + storage adapters
-  safety/            # consent, boundaries, policy guardrails
-  interfaces/        # UI/API shells
-  utils/             # shared helpers
-docs/
-  STYLE_GUIDE.md     # palette, typography, UI tone
-  PRINCIPLES.md      # values, boundaries, intent
-.github/
-  ISSUE_TEMPLATE/
-  PULL_REQUEST_TEMPLATE.md
-assets/
-  banner.svg
-  og.png             # optional social preview
-site/                # optional GitHub Pages landing
+Research/        # exploratory work, theory, notes
+Tools/           # practical utilities and experiments
+assets/          # visual assets (banner, images)
+docs/            # principles and style guide
+.github/         # contribution templates
+README.md
