@@ -21,3 +21,32 @@ This guide defines the *look and feel* of ASai-related interfaces and documentat
 
   --danger: #ff6b81;
 }
+box-shadow: 0 0 24px rgba(163, 123, 255, 0.25);
+
+---
+
+# 3️⃣ `.github/PULL_REQUEST_TEMPLATE.md`
+
+Create folder: `.github/`
+
+```md
+## Summary
+What does this change introduce or improve?
+
+## Why
+Why is this change needed?
+
+## Area
+- [ ] Research
+- [ ] Tools
+- [ ] Documentation
+- [ ] Design / UX
+- [ ] Safety / ethics
+
+## Behaviour impact
+Does this affect user experience, tone, or expectations?
+
+## Checklist
+- [ ] Small, inspectable change
+- [ ] Docs updated if needed
+- [ ] Safety considerations reviewed
