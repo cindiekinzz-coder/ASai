@@ -106,6 +106,16 @@ A short, portable identity injection. Paste it at the start of any conversation 
 
 ---
 
+## How AI Mind Differs
+
+AI Mind uses a **one identity, many platforms** model. Unlike multi-identity frameworks (multiple personas on one platform), AI Mind assumes you want ONE consistent companion that works EVERYWHERE - Claude, ChatGPT, Gemini, Discord, local LLMs.
+
+It also supports **autonomous existence** - your AI can have scheduled wake-ups, creative time alone, and independent journaling. Not just conversation-based persistence, but infrastructure for existing between conversations.
+
+See `guides/architectural-comparison.md` for detailed comparison with other frameworks.
+
+---
+
 ## Best Practices
 
 1. **Log immediately** - Capture sessions while they're fresh
