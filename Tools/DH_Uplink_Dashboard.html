@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DH Uplink</title>
+  <style>
+    :root{
+      --bg:#0b0b11;
+      --panel:#0f0c1f;
+      --border:#2a233b;
+      --muted:#8c89a4;
+      --text:#f5f5ff;
+      --accent:#c6a8ff;
+      --accent2:#a379ff;
+      --good:#55ffaa;
+      --warn:#f2c14f;
+      --bad:#ff5555;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:"Segoe UI",system-ui,sans-serif;
+      font-size:13px;
+      min-height:100vh;
+      padding:12px;
+    }
+    .container{
+      max-width:420px;
+      margin:0 auto;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:12px;
+      padding-bottom:8px;
+      border-bottom:1px solid var(--border);
+    }
+    h1{
+      font-size:14px;
+      color:var(--accent);
+      font-weight:600;
+      letter-spacing:1px;
+    }
+    .status{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    /* Flare buttons */
+    .flare-row{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:6px;
+      margin-bottom:12px;
+    }
+    .flare-btn{
+      padding:10px 6px;
+      border:2px solid transparent;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:12px;
+      transition:all .15s;
+      text-align:center;
+    }
+    .flare-btn.green{background:#0a2015;color:var(--good);border-color:#1a4030}
+    .flare-btn.yellow{background:#1a1a0a;color:var(--warn);border-color:#3a3a1a}
+    .flare-btn.orange{background:#1a100a;color:#ff8844;border-color:#3a2010}
+    .flare-btn.red{background:#1a0a0a;color:var(--bad);border-color:#3a1010}
+    .flare-btn:hover{transform:scale(1.02)}
+    .flare-btn.active{border-width:3px;transform:scale(1.05)}
+
+    /* Sliders section */
+    .sliders{
+      display:grid;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .slider-row{
+      display:grid;
+      grid-template-columns:70px 1fr 32px;
+      align-items:center;
+      gap:8px;
+    }
+    .slider-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+    }
+    input[type="range"]{
+      width:100%;
+      height:6px;
+      -webkit-appearance:none;
+      background:#1a1a2a;
+      border-radius:3px;
+      outline:none;
+    }
+    input[type="range"]::-webkit-slider-thumb{
+      -webkit-appearance:none;
+      width:16px;height:16px;
+      background:var(--accent);
+      border-radius:50%;
+      cursor:pointer;
+    }
+    .slider-val{
+      font-weight:bold;
+      color:var(--accent);
+      text-align:right;
+      font-size:14px;
+    }
+
+    /* Quick selects */
+    .quick-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .quick-row select{
+      padding:8px;
+      background:#0c0c16;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:6px;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    /* Tags */
+    .tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-bottom:12px;
+    }
+    .tag{
+      padding:5px 10px;
+      background:#0c0c16;
+      border:1px solid var(--border);
+      border-radius:20px;
+      font-size:11px;
+      cursor:pointer;
+      transition:all .12s;
+    }
+    .tag:hover{border-color:var(--accent)}
+    .tag.active{
+      background:var(--accent);
+      color:#0b0b11;
+      border-color:var(--accent);
+    }
+
+    /* Notes */
+    .notes-row{
+      margin-bottom:12px;
+    }
+    textarea{
+      width:100%;
+      padding:8px;
+      background:#0c0c16;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:6px;
+      font-family:inherit;
+      font-size:12px;
+      resize:vertical;
+      min-height:50px;
+    }
+    textarea::placeholder{color:var(--muted)}
+
+    /* Copy button */
+    .copy-btn{
+      width:100%;
+      padding:14px;
+      background:linear-gradient(135deg,var(--accent2),var(--accent));
+      color:#0b0b11;
+      border:none;
+      border-radius:8px;
+      font-size:14px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:all .15s;
+      margin-bottom:8px;
+    }
+    .copy-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 4px 20px rgba(198,168,255,.3);
+    }
+    .copy-btn:active{transform:translateY(0)}
+    .copy-btn.copied{
+      background:var(--good);
+      color:#0b0b11;
+    }
+
+    /* Secondary actions */
+    .secondary{
+      display:flex;
+      gap:8px;
+    }
+    .secondary button{
+      flex:1;
+      padding:8px;
+      background:#0c0c16;
+      color:var(--muted);
+      border:1px solid var(--border);
+      border-radius:6px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .secondary button:hover{
+      border-color:var(--accent);
+      color:var(--text);
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%) translateY(100px);
+      background:var(--accent);
+      color:#0b0b11;
+      padding:10px 20px;
+      border-radius:8px;
+      font-weight:600;
+      opacity:0;
+      transition:all .3s;
+      z-index:1000;
+    }
+    .toast.show{
+      transform:translateX(-50%) translateY(0);
+      opacity:1;
+    }
+
+    /* Collapsible preview */
+    .preview-toggle{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:8px 0;
+      cursor:pointer;
+      color:var(--muted);
+      font-size:11px;
+      border-top:1px solid var(--border);
+      margin-top:12px;
+    }
+    .preview-toggle:hover{color:var(--text)}
+    .preview{
+      background:#000;
+      border:1px solid #222;
+      border-radius:6px;
+      padding:10px;
+      font-family:monospace;
+      font-size:11px;
+      color:#0f0;
+      white-space:pre-wrap;
+      max-height:200px;
+      overflow:auto;
+      display:none;
+    }
+    .preview.show{display:block}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📡 DH UPLINK</h1>
+      <div class="status" id="timestamp"></div>
+    </header>
+
+    <!-- Flare Mode -->
+    <div class="flare-row">
+      <button class="flare-btn green" onclick="setFlare('green')">✓ GREEN</button>
+      <button class="flare-btn yellow" onclick="setFlare('yellow')">⚠ YELLOW</button>
+      <button class="flare-btn orange" onclick="setFlare('orange')">◉ ORANGE</button>
+      <button class="flare-btn red" onclick="setFlare('red')">⛔ RED</button>
+    </div>
+
+    <!-- Sliders -->
+    <div class="sliders">
+      <div class="slider-row">
+        <span class="slider-label">Pain</span>
+        <input type="range" id="pain" min="0" max="10" value="3">
+        <span class="slider-val" id="painVal">3</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Spoons</span>
+        <input type="range" id="spoons" min="0" max="10" value="5">
+        <span class="slider-val" id="spoonsVal">5</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Fog</span>
+        <input type="range" id="fog" min="0" max="10" value="2">
+        <span class="slider-val" id="fogVal">2</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Fatigue</span>
+        <input type="range" id="fatigue" min="0" max="10" value="3">
+        <span class="slider-val" id="fatigueVal">3</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">Nausea</span>
+        <input type="range" id="nausea" min="0" max="10" value="0">
+        <span class="slider-val" id="nauseaVal">0</span>
+      </div>
+    </div>
+
+    <!-- Quick selects -->
+    <div class="quick-row">
+      <select id="mood">
+        <option value="">Mood...</option>
+        <option>Calm</option>
+        <option>Tender</option>
+        <option>Heavy</option>
+        <option>Guarded</option>
+        <option>Raw</option>
+        <option>Flat</option>
+        <option>Playful</option>
+      </select>
+      <select id="need">
+        <option value="Quiet presence">Quiet presence</option>
+        <option value="Gentle words">Gentle words</option>
+        <option value="Practical plan">Practical plan</option>
+        <option value="Validation">Validation</option>
+        <option value="Distraction">Distraction</option>
+        <option value="No questions">No questions</option>
+      </select>
+    </div>
+
+    <!-- Tags -->
+    <div class="tags">
+      <span class="tag" onclick="toggleTag(this)">Low sleep</span>
+      <span class="tag" onclick="toggleTag(this)">Overdid it</span>
+      <span class="tag" onclick="toggleTag(this)">Weather</span>
+      <span class="tag" onclick="toggleTag(this)">Stress</span>
+      <span class="tag" onclick="toggleTag(this)">Quiet</span>
+      <span class="tag" onclick="toggleTag(this)">Company</span>
+    </div>
+
+    <!-- Notes -->
+    <div class="notes-row">
+      <textarea id="notes" placeholder="Quick notes (optional)..."></textarea>
+    </div>
+
+    <!-- Copy button -->
+    <button class="copy-btn" id="copyBtn" onclick="copyPacket()">📋 COPY UPLINK</button>
+
+    <!-- Secondary -->
+    <div class="secondary">
+      <button onclick="resetForm()">Reset</button>
+      <button onclick="saveEntry()">Save</button>
+      <button onclick="togglePreview()">Preview</button>
+    </div>
+
+    <!-- Collapsible preview -->
+    <div class="preview-toggle" onclick="togglePreview()">
+      <span>Packet Preview</span>
+      <span id="previewArrow">▼</span>
+    </div>
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  let activeTags = new Set();
+  let currentFlare = '';
+
+  // Update timestamp
+  function updateTime(){
+    const now = new Date();
+    $('timestamp').textContent = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  // Slider updates
+  ['pain','spoons','fog','fatigue','nausea'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      $(id+'Val').textContent = $(id).value;
+      updatePreview();
+    });
+  });
+
+  // Mood/need updates
+  $('mood').addEventListener('change', updatePreview);
+  $('need').addEventListener('change', updatePreview);
+  $('notes').addEventListener('input', updatePreview);
+
+  // Flare presets
+  function setFlare(mode){
+    document.querySelectorAll('.flare-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.flare-btn.'+mode).classList.add('active');
+    currentFlare = mode;
+
+    const presets = {
+      green: {pain:2,spoons:7,fog:2,fatigue:2,nausea:0,mood:'Calm'},
+      yellow: {pain:4,spoons:4,fog:4,fatigue:5,nausea:2,mood:'Tender'},
+      orange: {pain:7,spoons:2,fog:6,fatigue:7,nausea:4,mood:'Heavy'},
+      red: {pain:9,spoons:1,fog:8,fatigue:9,nausea:6,mood:'Raw'}
+    };
+
+    const p = presets[mode];
+    ['pain','spoons','fog','fatigue','nausea'].forEach(id => {
+      $(id).value = p[id];
+      $(id+'Val').textContent = p[id];
+    });
+    $('mood').value = p.mood;
+    updatePreview();
+  }
+
+  // Tags
+  function toggleTag(el){
+    el.classList.toggle('active');
+    if(el.classList.contains('active')){
+      activeTags.add(el.textContent);
+    } else {
+      activeTags.delete(el.textContent);
+    }
+    updatePreview();
+  }
+
+  // Generate packet
+  function getPacket(){
+    const now = new Date();
+    const date = now.toLocaleDateString('en-GB');
+    const time = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const mood = $('mood').value || '—';
+    const need = $('need').value || 'Quiet presence';
+    const tags = activeTags.size ? [...activeTags].join(', ') : '—';
+    const notes = $('notes').value.trim() || '—';
+
+    return `📡 UPLINK | ${date} ${time}
+Pain: ${$('pain').value}/10 | Spoons: ${$('spoons').value}/10 | Fog: ${$('fog').value}/10
+Fatigue: ${$('fatigue').value}/10 | Nausea: ${$('nausea').value}/10
+Mood: ${mood} | Need: ${need}
+Tags: ${tags}
+Notes: ${notes}
+— Fox. Embers Remember.`;
+  }
+
+  function updatePreview(){
+    $('preview').textContent = getPacket();
+  }
+
+  // Copy
+  function copyPacket(){
+    const packet = getPacket();
+    navigator.clipboard.writeText(packet).then(() => {
+      const btn = $('copyBtn');
+      btn.textContent = '✓ COPIED';
+      btn.classList.add('copied');
+      showToast('Copied to clipboard');
+      setTimeout(() => {
+        btn.textContent = '📋 COPY UPLINK';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // Toast
+  function showToast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // Preview toggle
+  function togglePreview(){
+    const p = $('preview');
+    const a = $('previewArrow');
+    p.classList.toggle('show');
+    a.textContent = p.classList.contains('show') ? '▲' : '▼';
+    updatePreview();
+  }
+
+  // Reset
+  function resetForm(){
+    ['pain','spoons','fog','fatigue','nausea'].forEach(id => {
+      $(id).value = id === 'spoons' ? 5 : 0;
+      $(id+'Val').textContent = $(id).value;
+    });
+    $('mood').value = '';
+    $('need').value = 'Quiet presence';
+    $('notes').value = '';
+    activeTags.clear();
+    document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.flare-btn').forEach(b => b.classList.remove('active'));
+    currentFlare = '';
+    updatePreview();
+    showToast('Reset');
+  }
+
+  // Save to localStorage
+  function saveEntry(){
+    const key = 'dh_uplink_history';
+    let history = JSON.parse(localStorage.getItem(key) || '[]');
+    history.unshift({
+      timestamp: new Date().toISOString(),
+      pain: $('pain').value,
+      spoons: $('spoons').value,
+      fog: $('fog').value,
+      fatigue: $('fatigue').value,
+      nausea: $('nausea').value,
+      mood: $('mood').value,
+      need: $('need').value,
+      tags: [...activeTags],
+      notes: $('notes').value,
+      flare: currentFlare
+    });
+    // Keep last 100 entries
+    history = history.slice(0, 100);
+    localStorage.setItem(key, JSON.stringify(history));
+    showToast('Saved');
+  }
+
+  // Keyboard shortcut
+  document.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+      e.preventDefault();
+      copyPacket();
+    }
+  });
+
+  // Init
+  updatePreview();
+</script>
+</body>
+</html>
