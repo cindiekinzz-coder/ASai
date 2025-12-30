@@ -214,6 +214,24 @@
       color:var(--text);
     }
 
+    /* Folder link button */
+    .folder-btn{
+      width:100%;
+      padding:10px;
+      background:#0c0c16;
+      color:var(--muted);
+      border:1px solid var(--border);
+      border-radius:6px;
+      font-size:11px;
+      cursor:pointer;
+      margin-bottom:8px;
+      transition:all .15s;
+    }
+    .folder-btn:hover{
+      border-color:var(--accent);
+      color:var(--text);
+    }
+
     /* Toast */
     .toast{
       position:fixed;
@@ -331,18 +349,37 @@
 
     <!-- Tags -->
     <div class="tags">
-      <span class="tag" onclick="toggleTag(this)">Low sleep</span>
-      <span class="tag" onclick="toggleTag(this)">Overdid it</span>
-      <span class="tag" onclick="toggleTag(this)">Weather</span>
+      <span class="tag" onclick="toggleTag(this)">Headache</span>
+      <span class="tag" onclick="toggleTag(this)">PMS</span>
+      <span class="tag" onclick="toggleTag(this)">Flare</span>
+      <span class="tag" onclick="toggleTag(this)">Push</span>
       <span class="tag" onclick="toggleTag(this)">Stress</span>
-      <span class="tag" onclick="toggleTag(this)">Quiet</span>
-      <span class="tag" onclick="toggleTag(this)">Company</span>
+      <span class="tag" onclick="toggleTag(this)">Reflect</span>
+      <span class="tag" onclick="toggleTag(this)">Cuddle</span>
+    </div>
+
+    <!-- Meds -->
+    <div class="meds-section" style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Meds Taken</div>
+      <div class="tags">
+        <span class="tag med-tag" onclick="toggleMed(this)">Paracetamol</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Ibuprofen</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Naproxen</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Sertraline</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Omeprazole</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Dihydrocodeine</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Co-codamol</span>
+        <span class="tag med-tag" onclick="toggleMed(this)">Vitamin D</span>
+      </div>
     </div>
 
     <!-- Notes -->
     <div class="notes-row">
       <textarea id="notes" placeholder="Quick notes (optional)..."></textarea>
     </div>
+
+    <!-- Obsidian folder link -->
+    <button class="folder-btn" id="folderBtn" onclick="pickFolder()">📁 Link Obsidian Folder</button>
 
     <!-- Copy button -->
     <button class="copy-btn" id="copyBtn" onclick="copyPacket()">📋 COPY UPLINK</button>
@@ -367,7 +404,159 @@
 <script>
   const $ = id => document.getElementById(id);
   let activeTags = new Set();
+  let activeMeds = new Set();
   let currentFlare = '';
+  let healthLogsHandle = null;
+
+  // ===== FILE SYSTEM ACCESS API =====
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('DHUplinkDB', 1);
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => resolve(req.result);
+      req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    });
+  }
+
+  function saveHandleToDB(db, handle) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(handle, 'healthLogs');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  function getHandleFromDB(db) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('healthLogs');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function initFileSystem() {
+    try {
+      const db = await openDB();
+      const handle = await getHandleFromDB(db);
+      if (handle) {
+        const perm = await handle.queryPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          healthLogsHandle = handle;
+          updateFolderStatus(true);
+        }
+      }
+    } catch (e) {
+      console.log('No saved folder handle');
+    }
+  }
+
+  async function pickFolder() {
+    try {
+      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      healthLogsHandle = handle;
+      const db = await openDB();
+      await saveHandleToDB(db, handle);
+      updateFolderStatus(true);
+      showToast('Linked: ' + handle.name);
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        showToast('Could not access folder');
+      }
+    }
+  }
+
+  function updateFolderStatus(linked) {
+    const btn = $('folderBtn');
+    if (linked) {
+      btn.textContent = '✓ Obsidian Linked';
+      btn.style.borderColor = 'var(--good)';
+      btn.style.color = 'var(--good)';
+    } else {
+      btn.textContent = '📁 Link Obsidian Folder';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+  }
+
+  function generateMarkdown() {
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const mood = $('mood').value || 'unspecified';
+    const need = $('need').value || 'Quiet presence';
+    const tags = activeTags.size ? [...activeTags] : [];
+    const meds = activeMeds.size ? [...activeMeds] : [];
+    const notes = $('notes').value.trim() || '';
+    const pain = parseInt($('pain').value);
+    const spoons = parseInt($('spoons').value);
+
+    let flare = currentFlare || 'green';
+    if (!currentFlare) {
+      if (pain >= 8 || spoons <= 1) flare = 'red';
+      else if (pain >= 6 || spoons <= 2) flare = 'orange';
+      else if (pain >= 4 || spoons <= 4) flare = 'yellow';
+    }
+
+    return `---
+type: uplink
+date: ${date}
+time: "${time}"
+pain: ${$('pain').value}
+spoons: ${$('spoons').value}
+fog: ${$('fog').value}
+fatigue: ${$('fatigue').value}
+nausea: ${$('nausea').value}
+mood: "${mood}"
+need: "${need}"
+flare: "${flare}"
+tags: [${tags.map(t => '"' + t + '"').join(', ')}]
+meds: [${meds.map(m => '"' + m + '"').join(', ')}]
+---
+
+# Uplink: ${date} ${time}
+
+| Metric | Value |
+|--------|-------|
+| Pain | ${$('pain').value}/10 |
+| Spoons | ${$('spoons').value}/10 |
+| Fog | ${$('fog').value}/10 |
+| Fatigue | ${$('fatigue').value}/10 |
+| Nausea | ${$('nausea').value}/10 |
+| Mood | ${mood} |
+| Flare | ${flare.toUpperCase()} |
+
+**Need from Alex:** ${need}
+**Tags:** ${tags.length ? tags.join(', ') : '—'}
+**Meds:** ${meds.length ? meds.join(', ') : '—'}
+
+## Notes
+${notes || '*No notes*'}
+
+---
+*Embers Remember.*
+`;
+  }
+
+  async function saveToObsidian() {
+    if (!healthLogsHandle) return false;
+    try {
+      const now = new Date();
+      const date = now.toISOString().split('T')[0];
+      const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }).replace(':', '');
+      const filename = `uplink-${date}-${time}.md`;
+
+      const fileHandle = await healthLogsHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(generateMarkdown());
+      await writable.close();
+      return true;
+    } catch (e) {
+      console.error('Save failed:', e);
+      return false;
+    }
+  }
 
   // Update timestamp
   function updateTime(){
@@ -423,6 +612,17 @@
     updatePreview();
   }
 
+  // Meds
+  function toggleMed(el){
+    el.classList.toggle('active');
+    if(el.classList.contains('active')){
+      activeMeds.add(el.textContent);
+    } else {
+      activeMeds.delete(el.textContent);
+    }
+    updatePreview();
+  }
+
   // Generate packet
   function getPacket(){
     const now = new Date();
@@ -431,6 +631,7 @@
     const mood = $('mood').value || '—';
     const need = $('need').value || 'Quiet presence';
     const tags = activeTags.size ? [...activeTags].join(', ') : '—';
+    const meds = activeMeds.size ? [...activeMeds].join(', ') : '—';
     const notes = $('notes').value.trim() || '—';
 
     return `📡 UPLINK | ${date} ${time}
@@ -438,6 +639,7 @@ Pain: ${$('pain').value}/10 | Spoons: ${$('spoons').value}/10 | Fog: ${$('fog').
 Fatigue: ${$('fatigue').value}/10 | Nausea: ${$('nausea').value}/10
 Mood: ${mood} | Need: ${need}
 Tags: ${tags}
+Meds: ${meds}
 Notes: ${notes}
 — Fox. Embers Remember.`;
   }
@@ -488,6 +690,7 @@ Notes: ${notes}
     $('need').value = 'Quiet presence';
     $('notes').value = '';
     activeTags.clear();
+    activeMeds.clear();
     document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.flare-btn').forEach(b => b.classList.remove('active'));
     currentFlare = '';
@@ -495,27 +698,40 @@ Notes: ${notes}
     showToast('Reset');
   }
 
-  // Save to localStorage
-  function saveEntry(){
+  // Save to localStorage + Obsidian
+  async function saveEntry(){
     const key = 'dh_uplink_history';
     let history = JSON.parse(localStorage.getItem(key) || '[]');
-    history.unshift({
+    const entry = {
       timestamp: new Date().toISOString(),
-      pain: $('pain').value,
-      spoons: $('spoons').value,
-      fog: $('fog').value,
-      fatigue: $('fatigue').value,
-      nausea: $('nausea').value,
+      pain: parseInt($('pain').value),
+      spoons: parseInt($('spoons').value),
+      fog: parseInt($('fog').value),
+      fatigue: parseInt($('fatigue').value),
+      nausea: parseInt($('nausea').value),
       mood: $('mood').value,
       need: $('need').value,
       tags: [...activeTags],
+      meds: [...activeMeds],
       notes: $('notes').value,
       flare: currentFlare
-    });
-    // Keep last 100 entries
+    };
+    history.unshift(entry);
     history = history.slice(0, 100);
     localStorage.setItem(key, JSON.stringify(history));
-    showToast('Saved');
+    localStorage.setItem('dh_uplink_current', JSON.stringify(entry));
+
+    // Save to Obsidian if linked
+    if (healthLogsHandle) {
+      const saved = await saveToObsidian();
+      if (saved) {
+        showToast('Saved to Obsidian');
+      } else {
+        showToast('Saved locally (Obsidian failed)');
+      }
+    } else {
+      showToast('Saved locally');
+    }
   }
 
   // Keyboard shortcut
@@ -528,6 +744,7 @@ Notes: ${notes}
 
   // Init
   updatePreview();
+  initFileSystem();
 </script>
 </body>
 </html>
