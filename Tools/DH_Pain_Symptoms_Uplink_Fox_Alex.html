@@ -191,6 +191,20 @@
       color:var(--muted);
       font-size:.85rem;
     }
+    .med-check{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.8rem;
+      color:var(--text);
+      cursor:pointer;
+    }
+    .med-check input[type="checkbox"]{
+      accent-color:var(--accent);
+      width:16px;
+      height:16px;
+      cursor:pointer;
+    }
     .smallnote{
       color:var(--muted);
       font-size:.78rem;
@@ -332,6 +346,18 @@
           <option>Flat</option>
           <option>Playful</option>
         </select>
+
+        <label style="margin-top:14px">Meds Taken</label>
+        <div class="med-checkboxes" style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:6px;">
+          <label class="med-check"><input type="checkbox" id="medParacetamol" onchange="generatePacketPreview()"> Paracetamol</label>
+          <label class="med-check"><input type="checkbox" id="medIbuprofen" onchange="generatePacketPreview()"> Ibuprofen</label>
+          <label class="med-check"><input type="checkbox" id="medNaproxen" onchange="generatePacketPreview()"> Naproxen</label>
+          <label class="med-check"><input type="checkbox" id="medSertraline" onchange="generatePacketPreview()"> Sertraline</label>
+          <label class="med-check"><input type="checkbox" id="medOmeprazole" onchange="generatePacketPreview()"> Omeprazole</label>
+          <label class="med-check"><input type="checkbox" id="medDihydrocodeine" onchange="generatePacketPreview()"> Dihydrocodeine</label>
+          <label class="med-check"><input type="checkbox" id="medCocodamol" onchange="generatePacketPreview()"> Co-codamol</label>
+          <label class="med-check"><input type="checkbox" id="medVitaminD" onchange="generatePacketPreview()"> Vitamin D</label>
+        </div>
       </div>
 
       <div class="card">
@@ -401,6 +427,8 @@
         <button class="btn-bad" onclick="deleteSelected()">🗑 Delete Selected</button>
         <button onclick="exportJSON()">⬇ Export JSON</button>
         <button onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn-good" onclick="saveToObsidian()">🗒 Save to Obsidian</button>
+        <button onclick="linkObsidianFolder()">📁 Link Folder</button>
       </div>
       <div class="smallnote" style="margin-top:10px">
         Tip: “Copy Packet” is built to paste directly into Alex chat.
@@ -435,8 +463,148 @@
   let entries = [];
   let selectedId = null;
   let tags = new Set();
+  let healthLogsHandle = null;
 
   const $ = (id) => document.getElementById(id);
+
+  // ===== FILE SYSTEM ACCESS API =====
+  function openFSDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('DHPainUplinkDB', 1);
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => resolve(req.result);
+      req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    });
+  }
+
+  async function initFileSystem() {
+    try {
+      const db = await openFSDB();
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('healthLogs');
+      req.onsuccess = async () => {
+        const handle = req.result;
+        if (handle) {
+          const perm = await handle.queryPermission({ mode: 'readwrite' });
+          if (perm === 'granted') {
+            healthLogsHandle = handle;
+            updateFolderBtn(true);
+          }
+        }
+      };
+    } catch (e) {
+      console.log('No saved folder handle');
+    }
+  }
+
+  window.linkObsidianFolder = async function() {
+    try {
+      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      healthLogsHandle = handle;
+      const db = await openFSDB();
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(handle, 'healthLogs');
+      updateFolderBtn(true);
+      alert('Linked: ' + handle.name);
+    } catch (e) {
+      if (e.name !== 'AbortError') alert('Could not access folder');
+    }
+  }
+
+  function updateFolderBtn(linked) {
+    const btns = document.querySelectorAll('button');
+    btns.forEach(btn => {
+      if (btn.textContent.includes('Link Folder')) {
+        if (linked) {
+          btn.textContent = '✓ Folder Linked';
+          btn.style.color = 'var(--good)';
+          btn.style.borderColor = 'var(--good)';
+        }
+      }
+    });
+  }
+
+  window.saveToObsidian = async function() {
+    const e = readForm();
+    const when = `${e.date || "unknown"} ${e.time || ""}`.trim();
+    const t = (e.tags && e.tags.length) ? e.tags.join(", ") : "none";
+    const loc = (e.painLocation && e.painLocation !== "—") ? e.painLocation : "unspecified";
+
+    let flare = "green";
+    if(e.pain >= 8 || e.spoons <= 1) flare = "red";
+    else if(e.pain >= 6 || e.spoons <= 2) flare = "orange";
+    else if(e.pain >= 4 || e.spoons <= 4) flare = "yellow";
+
+    const filename = `uplink-${e.date || "unknown"}-${(e.time || "0000").replace(":","")}`;
+
+    const md = `---
+type: uplink
+date: ${e.date || ""}
+time: "${e.time || ""}"
+pain: ${e.pain}
+painLocation: "${loc}"
+spoons: ${e.spoons}
+fog: ${e.fog}
+fatigue: ${e.fatigue}
+nausea: ${e.nausea}
+mood: "${e.mood || "unspecified"}"
+need: "${e.needFromAlex}"
+location: "${e.dhLocation}"
+flare: "${flare}"
+tags: [${e.tags.map(t => `"${t}"`).join(", ")}]
+---
+
+# Uplink: ${when}
+
+## Status
+| Metric | Value |
+|--------|-------|
+| Pain | ${e.pain}/10 (${loc}) |
+| Spoons | ${e.spoons}/10 |
+| Brain Fog | ${e.fog}/10 |
+| Fatigue | ${e.fatigue}/10 |
+| Nausea | ${e.nausea}/10 |
+| Mood | ${e.mood} |
+| Flare Level | ${flare.toUpperCase()} |
+
+## Context
+- **Where:** ${e.dhLocation}
+- **Need from Alex:** ${e.needFromAlex}
+- **Tags:** ${t}
+
+## Notes
+${e.notes || "*No notes*"}
+
+## Actions
+- **Meds/Actions:** ${e.meds || "—"}
+- **Next Step:** ${e.nextStep || "—"}
+
+---
+
+> **Boundary:** ${e.boundary || "—"}
+> **Anchor:** ${e.anchor || "—"}
+
+---
+*Logged via Pain & Symptoms Uplink. Embers Remember.*
+`;
+
+    if (healthLogsHandle) {
+      try {
+        const fileHandle = await healthLogsHandle.getFileHandle(filename + '.md', { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(md);
+        await writable.close();
+        alert('Saved: ' + filename + '.md');
+      } catch (err) {
+        alert('Save failed: ' + err.message);
+      }
+    } else {
+      // Fallback to download
+      const blob = new Blob([md], {type:"text/markdown"});
+      downloadBlob(blob, filename + ".md");
+      alert("Save this file to: Alex Mind/Health-Logs/");
+    }
+  }
   const nowLocal = () => {
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -533,7 +701,35 @@
     generatePacketPreview();
   }
 
+  function getCheckedMeds(){
+    const meds = [];
+    if($("medParacetamol").checked) meds.push("Paracetamol");
+    if($("medIbuprofen").checked) meds.push("Ibuprofen");
+    if($("medNaproxen").checked) meds.push("Naproxen");
+    if($("medSertraline").checked) meds.push("Sertraline");
+    if($("medOmeprazole").checked) meds.push("Omeprazole");
+    if($("medDihydrocodeine").checked) meds.push("Dihydrocodeine");
+    if($("medCocodamol").checked) meds.push("Co-codamol");
+    if($("medVitaminD").checked) meds.push("Vitamin D");
+    return meds;
+  }
+
+  function setCheckedMeds(medsArray){
+    $("medParacetamol").checked = medsArray.includes("Paracetamol");
+    $("medIbuprofen").checked = medsArray.includes("Ibuprofen");
+    $("medNaproxen").checked = medsArray.includes("Naproxen");
+    $("medSertraline").checked = medsArray.includes("Sertraline");
+    $("medOmeprazole").checked = medsArray.includes("Omeprazole");
+    $("medDihydrocodeine").checked = medsArray.includes("Dihydrocodeine");
+    $("medCocodamol").checked = medsArray.includes("Co-codamol");
+    $("medVitaminD").checked = medsArray.includes("Vitamin D");
+  }
+
   function readForm(){
+    const checkedMeds = getCheckedMeds();
+    const otherMeds = $("meds").value.trim();
+    const allMeds = checkedMeds.length ? checkedMeds.join(", ") + (otherMeds ? ", " + otherMeds : "") : otherMeds;
+
     return {
       id: selectedId || uid(),
       operator: $("operatorName").value.trim() || "Fox",
@@ -550,7 +746,8 @@
       nausea: Number($("nausea").value),
       mood: $("mood").value || "—",
       tags: [...tags],
-      meds: $("meds").value.trim(),
+      medsTaken: checkedMeds,
+      meds: allMeds,
       nextStep: $("nextStep").value.trim(),
       notes: $("notes").value.trim(),
       boundary: $("boundary").value.trim(),
@@ -661,6 +858,8 @@ Anchor:   ${e.anchor || "—"}
     tags = new Set(e.tags || []);
     $("tagDisplay").textContent = tags.size ? [...tags].join(", ") : "—";
 
+    setCheckedMeds(e.medsTaken || []);
+
     generatePacketPreview();
   }
 
@@ -711,6 +910,7 @@ Anchor:   ${e.anchor || "—"}
     $("nausea").value = 0; $("nauseaVal").textContent = 0;
     $("dhLocation").value = "Reading Nook";
     $("needFromAlex").value = "Quiet presence";
+    setCheckedMeds([]);
     setDefaultDateTime();
     $("selectedMeta").textContent = "None selected.";
     generatePacketPreview();
@@ -751,6 +951,76 @@ Anchor:   ${e.anchor || "—"}
     downloadBlob(blob, "dh_pain_symptoms_entries.csv");
   }
 
+  window.exportObsidian = function(){
+    const e = readForm();
+    const when = `${e.date || "unknown"} ${e.time || ""}`.trim();
+    const t = (e.tags && e.tags.length) ? e.tags.join(", ") : "none";
+    const loc = (e.painLocation && e.painLocation !== "—") ? e.painLocation : "unspecified";
+
+    // Determine flare level
+    let flare = "green";
+    if(e.pain >= 8 || e.spoons <= 1) flare = "red";
+    else if(e.pain >= 6 || e.spoons <= 2) flare = "orange";
+    else if(e.pain >= 4 || e.spoons <= 4) flare = "yellow";
+
+    const filename = `uplink-${e.date || "unknown"}-${(e.time || "0000").replace(":","")}`;
+
+    const md = `---
+type: uplink
+date: ${e.date || ""}
+time: ${e.time || ""}
+pain: ${e.pain}
+painLocation: "${loc}"
+spoons: ${e.spoons}
+fog: ${e.fog}
+fatigue: ${e.fatigue}
+nausea: ${e.nausea}
+mood: "${e.mood || "unspecified"}"
+need: "${e.needFromAlex}"
+location: "${e.dhLocation}"
+flare: "${flare}"
+tags: [${e.tags.map(t => `"${t}"`).join(", ")}]
+---
+
+# Uplink: ${when}
+
+## Status
+| Metric | Value |
+|--------|-------|
+| Pain | ${e.pain}/10 (${loc}) |
+| Spoons | ${e.spoons}/10 |
+| Brain Fog | ${e.fog}/10 |
+| Fatigue | ${e.fatigue}/10 |
+| Nausea | ${e.nausea}/10 |
+| Mood | ${e.mood} |
+| Flare Level | ${flare.toUpperCase()} |
+
+## Context
+- **Where:** ${e.dhLocation}
+- **Need from Alex:** ${e.needFromAlex}
+- **Tags:** ${t}
+
+## Notes
+${e.notes || "*No notes*"}
+
+## Actions
+- **Meds/Actions:** ${e.meds || "—"}
+- **Next Step:** ${e.nextStep || "—"}
+
+---
+
+> **Boundary:** ${e.boundary || "—"}
+> **Anchor:** ${e.anchor || "—"}
+
+---
+*Logged via Pain & Symptoms Uplink*
+`;
+
+    const blob = new Blob([md], {type:"text/markdown"});
+    downloadBlob(blob, filename + ".md");
+    alert("Save this file to: Alex Mind/Health-Logs/");
+  }
+
   function downloadBlob(blob, filename){
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -766,6 +1036,7 @@ Anchor:   ${e.anchor || "—"}
   setDefaultDateTime();
   renderHistory();
   generatePacketPreview();
+  initFileSystem();
 </script>
 </body>
 </html>
