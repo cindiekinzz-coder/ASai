@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DH Monthly Tracker</title>
+  <style>
+    :root{
+      --bg:#0b0b11;
+      --panel:#0f0c1f;
+      --border:#2a233b;
+      --muted:#8c89a4;
+      --text:#f5f5ff;
+      --accent:#c6a8ff;
+      --accent2:#a379ff;
+      --peach:#ffb08a;
+      --peach-dark:#cc8a6a;
+      --good:#55ffaa;
+      --warn:#f2c14f;
+      --bad:#ff5555;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:"Segoe UI",system-ui,sans-serif;
+      font-size:13px;
+      min-height:100vh;
+      padding:20px;
+    }
+    .container{
+      max-width:900px;
+      margin:0 auto;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+      padding-bottom:12px;
+      border-bottom:1px solid var(--border);
+    }
+    h1{
+      font-size:1.4rem;
+      color:var(--accent);
+      font-weight:600;
+    }
+    .month-nav{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .month-nav button{
+      background:var(--panel);
+      border:1px solid var(--border);
+      color:var(--accent);
+      padding:6px 12px;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .month-nav button:hover{
+      background:var(--border);
+    }
+    .month-label{
+      font-size:1.2rem;
+      font-weight:600;
+      min-width:140px;
+      text-align:center;
+    }
+
+    /* Cards */
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:16px;
+    }
+    .card h2{
+      font-size:0.75rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:1px;
+      margin-bottom:12px;
+    }
+
+    /* Line Chart */
+    .line-chart{
+      position:relative;
+      height:120px;
+      border-bottom:1px solid var(--border);
+      border-left:1px solid var(--border);
+      margin:10px 0 20px 30px;
+    }
+    .line-chart .y-axis{
+      position:absolute;
+      left:-30px;
+      top:0;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      font-size:10px;
+      color:var(--muted);
+    }
+    .line-chart svg{
+      width:100%;
+      height:100%;
+    }
+    .chart-legend{
+      display:flex;
+      gap:20px;
+      justify-content:center;
+      margin-top:8px;
+      font-size:11px;
+    }
+    .chart-legend span{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .legend-dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+    }
+
+    /* Bar Chart */
+    .bar-chart{
+      display:flex;
+      align-items:flex-end;
+      gap:3px;
+      height:100px;
+      padding:10px 0;
+      border-bottom:1px solid var(--border);
+      overflow-x:auto;
+    }
+    .bar-day{
+      flex:1;
+      min-width:20px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:1px;
+    }
+    .bar-stack{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:1px;
+    }
+    .bar-segment{
+      width:100%;
+      border-radius:2px;
+      min-height:2px;
+    }
+    .bar-label{
+      font-size:9px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    /* Grid Tracker */
+    .tracker-grid{
+      overflow-x:auto;
+    }
+    .tracker-grid table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+    }
+    .tracker-grid th{
+      padding:6px 4px;
+      color:var(--muted);
+      font-weight:normal;
+      border-bottom:1px solid var(--border);
+    }
+    .tracker-grid td{
+      padding:4px;
+      text-align:center;
+      border-bottom:1px solid rgba(42,35,59,0.5);
+    }
+    .tracker-grid .row-label{
+      text-align:left;
+      color:var(--text);
+      padding-left:8px;
+      white-space:nowrap;
+    }
+    .tracker-grid .cell{
+      width:22px;
+      height:22px;
+      margin:0 auto;
+      border-radius:4px;
+      background:var(--bg);
+      border:1px solid var(--border);
+    }
+    .tracker-grid .cell.filled{
+      background:var(--peach);
+      border-color:var(--peach-dark);
+    }
+    .tracker-grid .cell.filled-alt{
+      background:var(--accent);
+      border-color:var(--accent2);
+    }
+
+    /* Summary Stats */
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+      gap:12px;
+      margin-top:16px;
+    }
+    .stat-box{
+      background:var(--bg);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px;
+      text-align:center;
+    }
+    .stat-value{
+      font-size:1.5rem;
+      font-weight:bold;
+      color:var(--peach);
+    }
+    .stat-label{
+      font-size:10px;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin-top:4px;
+    }
+
+    /* Day numbers row */
+    .day-numbers{
+      display:flex;
+      gap:3px;
+      padding:0 0 8px 0;
+      font-size:9px;
+      color:var(--muted);
+    }
+    .day-numbers span{
+      flex:1;
+      min-width:20px;
+      text-align:center;
+    }
+
+    /* Flare indicator dots */
+    .flare-row{
+      display:flex;
+      gap:3px;
+      padding:8px 0;
+    }
+    .flare-dot{
+      flex:1;
+      min-width:20px;
+      height:8px;
+      border-radius:4px;
+      background:var(--border);
+    }
+    .flare-dot.green{background:var(--good)}
+    .flare-dot.yellow{background:var(--warn)}
+    .flare-dot.orange{background:#ff8844}
+    .flare-dot.red{background:var(--bad)}
+
+    /* No data message */
+    .no-data{
+      text-align:center;
+      padding:40px;
+      color:var(--muted);
+    }
+
+    /* Footer */
+    .footer{
+      text-align:center;
+      padding:20px;
+      color:var(--muted);
+      font-size:11px;
+      font-style:italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>DH Monthly Tracker</h1>
+      <div class="month-nav">
+        <button onclick="prevMonth()">&lt;</button>
+        <span class="month-label" id="monthLabel">December 2024</span>
+        <button onclick="nextMonth()">&gt;</button>
+      </div>
+    </header>
+
+    <!-- Line Chart: Pain & Spoons -->
+    <div class="card">
+      <h2>Pain & Spoons Over Time</h2>
+      <div class="line-chart" id="lineChart">
+        <div class="y-axis">
+          <span>10</span>
+          <span>5</span>
+          <span>0</span>
+        </div>
+        <svg id="lineSvg"></svg>
+      </div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--bad)"></span> Pain</span>
+        <span><span class="legend-dot" style="background:var(--good)"></span> Spoons</span>
+        <span><span class="legend-dot" style="background:var(--accent)"></span> Fog</span>
+      </div>
+    </div>
+
+    <!-- Bar Chart: Daily Levels -->
+    <div class="card">
+      <h2>Daily Levels</h2>
+      <div class="day-numbers" id="dayNumbers"></div>
+      <div class="bar-chart" id="barChart"></div>
+      <div class="flare-row" id="flareRow"></div>
+    </div>
+
+    <!-- Medication Grid -->
+    <div class="card">
+      <h2>Medication Tracker</h2>
+      <div class="tracker-grid">
+        <table id="medGrid"></table>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="card">
+      <h2>Monthly Summary</h2>
+      <div class="summary" id="summary"></div>
+    </div>
+
+    <div class="footer">Embers Remember.</div>
+  </div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  let currentDate = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const meds = ['Paracetamol','Ibuprofen','Naproxen','Sertraline','Omeprazole','Dihydrocodeine','Co-codamol','Vitamin D'];
+
+  function getMonthData(year, month) {
+    // Try both localStorage keys (compact and full uplink)
+    const compactHistory = JSON.parse(localStorage.getItem('dh_uplink_history') || '[]');
+    const fullHistory = JSON.parse(localStorage.getItem('dh_pain_entries') || '[]');
+
+    // Merge and normalize
+    const allEntries = [...compactHistory, ...fullHistory].map(e => {
+      const date = e.timestamp ? new Date(e.timestamp) : (e.date ? new Date(e.date) : null);
+      return {
+        date,
+        day: date ? date.getDate() : null,
+        month: date ? date.getMonth() : null,
+        year: date ? date.getFullYear() : null,
+        pain: e.pain ?? 0,
+        spoons: e.spoons ?? 5,
+        fog: e.fog ?? 0,
+        fatigue: e.fatigue ?? 0,
+        nausea: e.nausea ?? 0,
+        flare: e.flare || 'green',
+        meds: e.meds || e.medsTaken || []
+      };
+    }).filter(e => e.date && e.year === year && e.month === month);
+
+    // Group by day (take latest entry per day)
+    const byDay = {};
+    allEntries.forEach(e => {
+      if (!byDay[e.day] || e.date > byDay[e.day].date) {
+        byDay[e.day] = e;
+      }
+    });
+
+    return byDay;
+  }
+
+  function getDaysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+  }
+
+  function renderMonth() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const data = getMonthData(year, month);
+
+    $('monthLabel').textContent = `${months[month]} ${year}`;
+
+    renderLineChart(data, daysInMonth);
+    renderBarChart(data, daysInMonth);
+    renderMedGrid(data, daysInMonth);
+    renderSummary(data, daysInMonth);
+  }
+
+  function renderLineChart(data, days) {
+    const svg = $('lineSvg');
+    const width = svg.clientWidth || 800;
+    const height = 120;
+
+    let painPath = '';
+    let spoonsPath = '';
+    let fogPath = '';
+
+    const xStep = width / (days + 1);
+
+    for (let d = 1; d <= days; d++) {
+      const entry = data[d];
+      const x = d * xStep;
+
+      if (entry) {
+        const painY = height - (entry.pain / 10 * height);
+        const spoonsY = height - (entry.spoons / 10 * height);
+        const fogY = height - (entry.fog / 10 * height);
+
+        painPath += painPath ? ` L${x},${painY}` : `M${x},${painY}`;
+        spoonsPath += spoonsPath ? ` L${x},${spoonsY}` : `M${x},${spoonsY}`;
+        fogPath += fogPath ? ` L${x},${fogY}` : `M${x},${fogY}`;
+      }
+    }
+
+    svg.innerHTML = `
+      <path d="${painPath}" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${spoonsPath}" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${fogPath}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,4"/>
+    `;
+  }
+
+  function renderBarChart(data, days) {
+    let dayNumbersHtml = '';
+    let barsHtml = '';
+    let flareHtml = '';
+
+    for (let d = 1; d <= days; d++) {
+      const entry = data[d];
+      dayNumbersHtml += `<span>${d}</span>`;
+
+      if (entry) {
+        const painH = entry.pain * 3;
+        const fatigueH = entry.fatigue * 2;
+        const nauseaH = entry.nausea * 1.5;
+
+        barsHtml += `
+          <div class="bar-day">
+            <div class="bar-stack" style="height:${painH + fatigueH + nauseaH}px">
+              <div class="bar-segment" style="height:${painH}px;background:var(--bad)"></div>
+              <div class="bar-segment" style="height:${fatigueH}px;background:var(--warn)"></div>
+              <div class="bar-segment" style="height:${nauseaH}px;background:var(--peach)"></div>
+            </div>
+          </div>
+        `;
+        flareHtml += `<div class="flare-dot ${entry.flare}"></div>`;
+      } else {
+        barsHtml += `<div class="bar-day"><div class="bar-stack"></div></div>`;
+        flareHtml += `<div class="flare-dot"></div>`;
+      }
+    }
+
+    $('dayNumbers').innerHTML = dayNumbersHtml;
+    $('barChart').innerHTML = barsHtml;
+    $('flareRow').innerHTML = flareHtml;
+  }
+
+  function renderMedGrid(data, days) {
+    let headerHtml = '<tr><th></th>';
+    for (let d = 1; d <= days; d++) {
+      headerHtml += `<th>${d}</th>`;
+    }
+    headerHtml += '</tr>';
+
+    let rowsHtml = '';
+    meds.forEach((med, i) => {
+      rowsHtml += `<tr><td class="row-label">${med}</td>`;
+      for (let d = 1; d <= days; d++) {
+        const entry = data[d];
+        const taken = entry && entry.meds && (
+          Array.isArray(entry.meds) ? entry.meds.includes(med) : entry.meds.includes(med)
+        );
+        const cellClass = taken ? (i % 2 === 0 ? 'filled' : 'filled-alt') : '';
+        rowsHtml += `<td><div class="cell ${cellClass}"></div></td>`;
+      }
+      rowsHtml += '</tr>';
+    });
+
+    $('medGrid').innerHTML = headerHtml + rowsHtml;
+  }
+
+  function renderSummary(data, days) {
+    const entries = Object.values(data);
+    const count = entries.length;
+
+    if (count === 0) {
+      $('summary').innerHTML = '<div class="no-data">No data for this month yet.</div>';
+      return;
+    }
+
+    const avgPain = (entries.reduce((s, e) => s + e.pain, 0) / count).toFixed(1);
+    const avgSpoons = (entries.reduce((s, e) => s + e.spoons, 0) / count).toFixed(1);
+    const avgFog = (entries.reduce((s, e) => s + e.fog, 0) / count).toFixed(1);
+    const redDays = entries.filter(e => e.flare === 'red').length;
+    const greenDays = entries.filter(e => e.flare === 'green').length;
+
+    // Most used med
+    const medCounts = {};
+    entries.forEach(e => {
+      if (e.meds && Array.isArray(e.meds)) {
+        e.meds.forEach(m => { medCounts[m] = (medCounts[m] || 0) + 1; });
+      }
+    });
+    const topMed = Object.entries(medCounts).sort((a,b) => b[1] - a[1])[0];
+
+    $('summary').innerHTML = `
+      <div class="stat-box">
+        <div class="stat-value">${avgPain}</div>
+        <div class="stat-label">Avg Pain</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:var(--good)">${avgSpoons}</div>
+        <div class="stat-label">Avg Spoons</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:var(--accent)">${avgFog}</div>
+        <div class="stat-label">Avg Fog</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:var(--bad)">${redDays}</div>
+        <div class="stat-label">Red Days</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:var(--good)">${greenDays}</div>
+        <div class="stat-label">Green Days</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${count}</div>
+        <div class="stat-label">Logged Days</div>
+      </div>
+      ${topMed ? `
+      <div class="stat-box">
+        <div class="stat-value" style="font-size:1rem">${topMed[0]}</div>
+        <div class="stat-label">Top Med (${topMed[1]}x)</div>
+      </div>
+      ` : ''}
+    `;
+  }
+
+  function prevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderMonth();
+  }
+
+  function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderMonth();
+  }
+
+  // Init
+  renderMonth();
+</script>
+</body>
+</html>
