@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ASai Base Styles */
+:root {
+  --asai-bg: #0b0b11;
+  --asai-panel: #141421;
+  --asai-border: #26263a;
+  --asai-border-light: #3a3054;
+  --asai-text: #f2f2f7;
+  --asai-muted: #9a9ab0;
+  --asai-accent: #a37bff;
+  --asai-accent-soft: #c6a8ff;
+  --asai-warm: #f2c14f;
+  --asai-calm: #3bd1a2;
+  --asai-danger: #ff6b81;
+  --asai-glow: 0 0 24px rgba(163, 123, 255, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-asai-bg text-asai-text font-mono;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Custom scrollbar for ASai aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--asai-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--asai-border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--asai-accent);
+}
+
+/* Range slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--asai-border);
+  border-radius: 999px;
+  height: 8px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--asai-accent);
+  cursor: pointer;
+  box-shadow: var(--asai-glow);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--asai-accent);
+  cursor: pointer;
+  border: none;
+}

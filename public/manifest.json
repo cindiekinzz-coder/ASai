@@ -1,0 +1,19 @@
+{
+  "name": "ASai",
+  "short_name": "ASai",
+  "description": "Chronic illness tracking for people with AI companions. Log symptoms, send packets, receive anchor notes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b11",
+  "theme_color": "#0b0b11",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/asai-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["health", "lifestyle", "utilities"]
+}
