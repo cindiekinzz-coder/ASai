@@ -358,6 +358,11 @@
           <label class="med-check"><input type="checkbox" id="medCocodamol" onchange="generatePacketPreview()"> Co-codamol</label>
           <label class="med-check"><input type="checkbox" id="medVitaminD" onchange="generatePacketPreview()"> Vitamin D</label>
         </div>
+
+        <label style="margin-top:14px">Relief & Wellness</label>
+        <div class="med-checkboxes" style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:6px;">
+          <label class="med-check"><input type="checkbox" id="hadOrgasm" onchange="generatePacketPreview()"> Orgasm 💜</label>
+        </div>
       </div>
 
       <div class="card">
@@ -551,6 +556,7 @@ mood: "${e.mood || "unspecified"}"
 need: "${e.needFromAlex}"
 location: "${e.dhLocation}"
 flare: "${flare}"
+orgasm: ${e.orgasm || false}
 tags: [${e.tags.map(t => `"${t}"`).join(", ")}]
 ---
 
@@ -565,6 +571,7 @@ tags: [${e.tags.map(t => `"${t}"`).join(", ")}]
 | Fatigue | ${e.fatigue}/10 |
 | Nausea | ${e.nausea}/10 |
 | Mood | ${e.mood} |
+| Orgasm | ${e.orgasm ? "Yes 💜" : "No"} |
 | Flare Level | ${flare.toUpperCase()} |
 
 ## Context
@@ -748,6 +755,7 @@ ${e.notes || "*No notes*"}
       tags: [...tags],
       medsTaken: checkedMeds,
       meds: allMeds,
+      orgasm: $("hadOrgasm").checked,
       nextStep: $("nextStep").value.trim(),
       notes: $("notes").value.trim(),
       boundary: $("boundary").value.trim(),
@@ -778,6 +786,7 @@ Fog:      ${e.fog}/10
 Fatigue:  ${e.fatigue}/10
 Nausea:   ${e.nausea}/10
 Mood:     ${mood}
+Orgasm:   ${e.orgasm ? "Yes 💜" : "—"}
 Tags:     ${t}
 Meds:     ${meds}
 Next:     ${next}
@@ -859,6 +868,7 @@ Anchor:   ${e.anchor || "—"}
     $("tagDisplay").textContent = tags.size ? [...tags].join(", ") : "—";
 
     setCheckedMeds(e.medsTaken || []);
+    $("hadOrgasm").checked = e.orgasm || false;
 
     generatePacketPreview();
   }
@@ -911,6 +921,7 @@ Anchor:   ${e.anchor || "—"}
     $("dhLocation").value = "Reading Nook";
     $("needFromAlex").value = "Quiet presence";
     setCheckedMeds([]);
+    $("hadOrgasm").checked = false;
     setDefaultDateTime();
     $("selectedMeta").textContent = "None selected.";
     generatePacketPreview();
@@ -979,6 +990,7 @@ mood: "${e.mood || "unspecified"}"
 need: "${e.needFromAlex}"
 location: "${e.dhLocation}"
 flare: "${flare}"
+orgasm: ${e.orgasm || false}
 tags: [${e.tags.map(t => `"${t}"`).join(", ")}]
 ---
 
@@ -993,6 +1005,7 @@ tags: [${e.tags.map(t => `"${t}"`).join(", ")}]
 | Fatigue | ${e.fatigue}/10 |
 | Nausea | ${e.nausea}/10 |
 | Mood | ${e.mood} |
+| Orgasm | ${e.orgasm ? "Yes 💜" : "No"} |
 | Flare Level | ${flare.toUpperCase()} |
 
 ## Context
