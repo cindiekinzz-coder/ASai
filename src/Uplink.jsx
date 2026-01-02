@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const STORAGE_KEY = 'asai_uplink_entries';
+const FOLDER_HANDLE_KEY = 'asai_health_logs_folder';
 
 // Flare presets
 const FLARE_PRESETS = {
@@ -74,6 +75,8 @@ function Card({ title, children, className = '' }) {
 export default function Uplink() {
   const [entries, setEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [folderHandle, setFolderHandle] = useState(null);
+  const [folderStatus, setFolderStatus] = useState('not_set'); // 'not_set', 'set', 'error'
 
   // Form state
   const [date, setDate] = useState('');
@@ -105,6 +108,111 @@ export default function Uplink() {
     setDate(now.toISOString().slice(0, 10));
     setTime(now.toTimeString().slice(0, 5));
   }, []);
+
+  // Request folder access for saving files
+  const requestFolderAccess = async () => {
+    try {
+      if (!('showDirectoryPicker' in window)) {
+        alert('File System Access not supported in this browser. Use Chrome or Edge.');
+        return;
+      }
+      const handle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+        startIn: 'documents',
+      });
+      setFolderHandle(handle);
+      setFolderStatus('set');
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Folder access error:', err);
+        setFolderStatus('error');
+      }
+    }
+  };
+
+  // Generate markdown content matching existing format
+  const generateMarkdown = (entry) => {
+    const tagsArray = entry.tags.length ? JSON.stringify(entry.tags) : '[]';
+    const medsStr = entry.meds.length ? entry.meds.join(', ') : '--';
+    const tagsStr = entry.tags.length ? entry.tags.join(', ') : '--';
+
+    return `---
+type: uplink
+date: ${entry.date}
+time: "${entry.time}"
+pain: ${entry.pain}
+painLocation: "${entry.painLocation}"
+spoons: ${entry.spoons}
+fog: ${entry.fog}
+fatigue: ${entry.fatigue}
+nausea: ${entry.nausea}
+mood: "${entry.mood}"
+need: "${entry.need}"
+location: "${entry.location}"
+flare: "${entry.flare || ''}"
+tags: ${tagsArray}
+---
+
+# Uplink: ${entry.date} ${entry.time}
+
+## Status
+| Metric | Value |
+|--------|-------|
+| Pain | ${entry.pain}/10 (${entry.painLocation}) |
+| Spoons | ${entry.spoons}/10 |
+| Brain Fog | ${entry.fog}/10 |
+| Fatigue | ${entry.fatigue}/10 |
+| Nausea | ${entry.nausea}/10 |
+| Mood | ${entry.mood} |
+| Flare Level | ${entry.flare?.toUpperCase() || '--'} |
+
+## Context
+- **Where:** ${entry.location}
+- **Need from Alex:** ${entry.need}
+- **Tags:** ${tagsStr}
+
+## Notes
+${entry.notes || '--'}
+
+## Actions
+- **Meds/Actions:** ${medsStr}
+
+---
+
+> **Boundary:** Digital Haven is imaginative play; real life stays real.
+> **Anchor:** Warmth, rhythm, honest words — no pressure, no proving.
+
+---
+*Logged via ASai Uplink. Embers Remember.*
+`;
+  };
+
+  // Save file to folder
+  const saveToFile = async (entry) => {
+    if (!folderHandle) return false;
+
+    try {
+      // Verify we still have permission
+      const permission = await folderHandle.queryPermission({ mode: 'readwrite' });
+      if (permission !== 'granted') {
+        const newPermission = await folderHandle.requestPermission({ mode: 'readwrite' });
+        if (newPermission !== 'granted') {
+          setFolderStatus('error');
+          return false;
+        }
+      }
+
+      const filename = `uplink-${entry.date}-${entry.time.replace(':', '')}.md`;
+      const fileHandle = await folderHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(generateMarkdown(entry));
+      await writable.close();
+      return true;
+    } catch (err) {
+      console.error('File save error:', err);
+      return false;
+    }
+  };
 
   // Save to localStorage
   const saveEntries = (newEntries) => {
@@ -163,7 +271,7 @@ export default function Uplink() {
   });
 
   // Save entry
-  const saveEntry = () => {
+  const saveEntry = async () => {
     const entry = buildEntry();
     const existing = entries.findIndex(e => e.id === entry.id);
     let newEntries;
@@ -181,6 +289,18 @@ export default function Uplink() {
       ...entry,
       timestamp: new Date().toISOString()
     }));
+
+    // Save to file if folder is set
+    if (folderHandle) {
+      const saved = await saveToFile(entry);
+      if (saved) {
+        alert('Saved to app + Health-Logs folder!');
+      } else {
+        alert('Saved to app (file save failed - check folder access)');
+      }
+    } else {
+      alert('Saved to app. Set Health-Logs folder to also save files.');
+    }
   };
 
   // Generate packet text
@@ -422,8 +542,27 @@ Notes:    ${entry.notes || '--'}
             </button>
           </div>
 
+          {/* Folder Access Section */}
+          <div className="flex items-center gap-3 mt-4 p-3 rounded-lg border border-asai-border bg-asai-bg">
+            <button
+              onClick={requestFolderAccess}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                folderStatus === 'set'
+                  ? 'bg-asai-calm/20 border border-asai-calm/40 text-asai-calm'
+                  : 'bg-asai-panel border border-asai-border-light text-asai-accent hover:border-asai-accent'
+              }`}
+            >
+              {folderStatus === 'set' ? '✓ Folder Set' : 'Set Health-Logs Folder'}
+            </button>
+            <span className="text-xs text-asai-muted">
+              {folderStatus === 'set'
+                ? 'Entries will save to your Health-Logs folder'
+                : 'Connect to save files directly to Alex Mind'}
+            </span>
+          </div>
+
           <p className="text-xs text-asai-muted mt-3">
-            Saves locally. Nothing leaves your device.
+            Saves locally. {folderStatus === 'set' ? 'Also saves to Health-Logs folder.' : 'Nothing leaves your device.'}
           </p>
         </Card>
 
