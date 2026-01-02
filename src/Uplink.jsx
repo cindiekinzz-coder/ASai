@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const STORAGE_KEY = 'asai_uplink_entries';
-const FOLDER_HANDLE_KEY = 'asai_health_logs_folder';
 
 // Flare presets
 const FLARE_PRESETS = {
@@ -75,8 +74,6 @@ function Card({ title, children, className = '' }) {
 export default function Uplink() {
   const [entries, setEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const [folderHandle, setFolderHandle] = useState(null);
-  const [folderStatus, setFolderStatus] = useState('not_set'); // 'not_set', 'set', 'error'
 
   // Form state
   const [date, setDate] = useState('');
@@ -109,28 +106,7 @@ export default function Uplink() {
     setTime(now.toTimeString().slice(0, 5));
   }, []);
 
-  // Request folder access for saving files
-  const requestFolderAccess = async () => {
-    try {
-      if (!('showDirectoryPicker' in window)) {
-        alert('File System Access not supported in this browser. Use Chrome or Edge.');
-        return;
-      }
-      const handle = await window.showDirectoryPicker({
-        mode: 'readwrite',
-        startIn: 'documents',
-      });
-      setFolderHandle(handle);
-      setFolderStatus('set');
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.error('Folder access error:', err);
-        setFolderStatus('error');
-      }
-    }
-  };
-
-  // Generate markdown content matching existing format
+  // Generate markdown content for download
   const generateMarkdown = (entry) => {
     const tagsArray = entry.tags.length ? JSON.stringify(entry.tags) : '[]';
     const medsStr = entry.meds.length ? entry.meds.join(', ') : '--';
@@ -187,31 +163,19 @@ ${entry.notes || '--'}
 `;
   };
 
-  // Save file to folder
-  const saveToFile = async (entry) => {
-    if (!folderHandle) return false;
-
-    try {
-      // Verify we still have permission
-      const permission = await folderHandle.queryPermission({ mode: 'readwrite' });
-      if (permission !== 'granted') {
-        const newPermission = await folderHandle.requestPermission({ mode: 'readwrite' });
-        if (newPermission !== 'granted') {
-          setFolderStatus('error');
-          return false;
-        }
-      }
-
-      const filename = `uplink-${entry.date}-${entry.time.replace(':', '')}.md`;
-      const fileHandle = await folderHandle.getFileHandle(filename, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(generateMarkdown(entry));
-      await writable.close();
-      return true;
-    } catch (err) {
-      console.error('File save error:', err);
-      return false;
-    }
+  // Download markdown file
+  const downloadMarkdown = (entry) => {
+    const filename = `uplink-${entry.date}-${entry.time.replace(':', '')}.md`;
+    const content = generateMarkdown(entry);
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Save to localStorage
@@ -270,8 +234,8 @@ ${entry.notes || '--'}
     createdAt: new Date().toISOString(),
   });
 
-  // Save entry
-  const saveEntry = async () => {
+  // Save entry (to localStorage only)
+  const saveEntry = () => {
     const entry = buildEntry();
     const existing = entries.findIndex(e => e.id === entry.id);
     let newEntries;
@@ -289,18 +253,31 @@ ${entry.notes || '--'}
       ...entry,
       timestamp: new Date().toISOString()
     }));
+  };
 
-    // Save to file if folder is set
-    if (folderHandle) {
-      const saved = await saveToFile(entry);
-      if (saved) {
-        alert('Saved to app + Health-Logs folder!');
-      } else {
-        alert('Saved to app (file save failed - check folder access)');
-      }
+  // Save and download file for AI companion
+  const saveAndDownload = () => {
+    const entry = buildEntry();
+
+    // Save to localStorage
+    const existing = entries.findIndex(e => e.id === entry.id);
+    let newEntries;
+    if (existing >= 0) {
+      newEntries = [...entries];
+      newEntries[existing] = entry;
     } else {
-      alert('Saved to app. Set Health-Logs folder to also save files.');
+      newEntries = [...entries, entry];
     }
+    saveEntries(newEntries);
+    setSelectedId(entry.id);
+
+    localStorage.setItem('dh_uplink_current', JSON.stringify({
+      ...entry,
+      timestamp: new Date().toISOString()
+    }));
+
+    // Download the file
+    downloadMarkdown(entry);
   };
 
   // Generate packet text
@@ -523,10 +500,10 @@ Notes:    ${entry.notes || '--'}
 
           <div className="flex flex-wrap gap-3 mt-4">
             <button
-              onClick={saveEntry}
+              onClick={saveAndDownload}
               className="flex-1 min-w-[140px] bg-asai-accent text-asai-bg font-bold py-3 px-4 rounded-xl hover:bg-asai-accent-soft transition shadow-asai-glow"
             >
-              Save Entry
+              Save + Download
             </button>
             <button
               onClick={copyPacket}
@@ -542,27 +519,8 @@ Notes:    ${entry.notes || '--'}
             </button>
           </div>
 
-          {/* Folder Access Section */}
-          <div className="flex items-center gap-3 mt-4 p-3 rounded-lg border border-asai-border bg-asai-bg">
-            <button
-              onClick={requestFolderAccess}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                folderStatus === 'set'
-                  ? 'bg-asai-calm/20 border border-asai-calm/40 text-asai-calm'
-                  : 'bg-asai-panel border border-asai-border-light text-asai-accent hover:border-asai-accent'
-              }`}
-            >
-              {folderStatus === 'set' ? '✓ Folder Set' : 'Set Health-Logs Folder'}
-            </button>
-            <span className="text-xs text-asai-muted">
-              {folderStatus === 'set'
-                ? 'Entries will save to your Health-Logs folder'
-                : 'Connect to save files directly to Alex Mind'}
-            </span>
-          </div>
-
           <p className="text-xs text-asai-muted mt-3">
-            Saves locally. {folderStatus === 'set' ? 'Also saves to Health-Logs folder.' : 'Nothing leaves your device.'}
+            Downloads a .md file. Move it to your Health-Logs folder so your AI companion can see it.
           </p>
         </Card>
 
