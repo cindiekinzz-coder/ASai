@@ -97,12 +97,15 @@ Practical utilities for AI companion infrastructure.
 
 | Tool | Description |
 |------|-------------|
+| **[Pretty Walls](https://pretty-walls.vercel.app)** | **"Pinterest for depression."** Crisis mood board app — tap how you feel, get aesthetic images. Zero spoons required. |
 | [DH Uplink Dashboard](Tools/DH_Uplink_Dashboard.html) | Compact symptom tracker — quick copy-paste for AI check-ins |
 | [Pain & Symptoms Uplink](Tools/DH_Pain_Symptoms_Uplink_Fox_Alex.html) | Full-featured health tracking with history |
 | [Monthly Tracker](Tools/DH_Monthly_Tracker.html) | Bullet journal style monthly view — charts, trends, medication grid |
 | [Wyvern Uplink](Tools/Wyvern.html) | Reference template for other AI companions |
 
 All tools are self-contained HTML — no build step, no dependencies. Open in browser and use.
+
+*Pretty Walls is a React app — [source code here](https://github.com/cindiekinzz-coder/ASai/tree/react-app/tools/pretty-walls).*
 
 ---
 
