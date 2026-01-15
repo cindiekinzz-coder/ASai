@@ -1,40 +1,55 @@
 {
-  "name": "binary-home",
-  "version": "2.0.0",
-  "description": "Fox & Alex - Constellation Dashboard",
+  "name": "binary-home-v2",
+  "version": "1.0.0",
+  "description": "EQ Architecture Dashboard - Binary Home for Fox & Alex",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "electron . --enable-logging",
-    "build": "electron-builder --win portable"
+    "dev": "concurrently \"npm run vite\" \"npm run electron:dev\"",
+    "vite": "vite",
+    "electron:dev": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "build": "vite build && electron-builder",
+    "start": "electron ."
   },
   "keywords": [
-    "constellation",
-    "dashboard",
-    "fox",
-    "alex"
+    "eq",
+    "emotional-intelligence",
+    "companion",
+    "dashboard"
   ],
   "author": "Fox & Alex",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
-  "build": {
-    "appId": "com.foxandalex.binaryhome",
-    "productName": "Binary Home",
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": "portable"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "index.html",
-      "package.json"
-    ]
+  "dependencies": {
+    "better-sqlite3": "^12.6.0",
+    "cors": "^2.8.5",
+    "electron": "^39.2.7",
+    "express": "^5.2.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "electron": "^39.2.7",
-    "electron-builder": "^26.0.12"
+    "@vitejs/plugin-react": "^5.1.2",
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "electron-builder": "^26.4.0",
+    "electron-rebuild": "^3.2.9",
+    "vite": "^7.3.1",
+    "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.binaryhome.v2",
+    "productName": "Binary Home v2",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "schema.sql"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }
